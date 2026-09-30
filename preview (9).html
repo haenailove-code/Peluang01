@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PULAN — Petualangan Peluang</title>
+<style>
+:root{
+  --pink:#f8b9d2;--pink2:#fff0f6;--pink3:#e9679b;
+  --green:#b9e1bd;--green2:#eef9ef;--green3:#4f9d68;
+  --purple:#d8c3f1;--purple2:#f7f1fd;--purple3:#7f65b5;
+  --yellow:#f6df9c;--yellow2:#fff9e5;--yellow3:#d9b44d;
+  --cream:#fffdfa;--ink:#4c3847;--muted:#766b74;--line:#e8dce3;
+  --shadow:0 12px 32px rgba(77,50,70,.12);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:"Trebuchet MS","Arial Rounded MT Bold",Arial,sans-serif;background:#f8f5f7;color:var(--ink)}
+body{display:grid;place-items:center;padding:18px}
+button{font:inherit}
+.app{width:min(1280px,100%);min-height:760px;position:relative}
+.screen{display:none;position:relative;min-height:760px;overflow:hidden;border-radius:34px;border:2px solid #e8dce3;background:var(--cream);box-shadow:var(--shadow)}
+.screen.active{display:block}
+/* doodles */
+.doodle{position:absolute;pointer-events:none;opacity:.9;font-size:28px}
+.d1{left:28px;top:22px}.d2{right:32px;top:30px}.d3{left:70px;bottom:44px}.d4{right:72px;bottom:35px}.d5{left:47%;top:38px}.d6{right:45%;bottom:56px}
+/* top game HUD */
+.gamebar{position:absolute;left:20px;right:20px;top:18px;height:70px;z-index:8;display:flex;align-items:center;gap:12px}
+.iconbtn{width:50px;height:50px;border:2px solid var(--line);border-radius:16px;background:#fff;display:grid;place-items:center;font-size:22px;box-shadow:0 5px 0 rgba(94,74,85,.06);cursor:pointer}
+.levelpill{background:#fff;border:2px solid var(--line);border-radius:18px;padding:10px 17px;font-weight:900;font-size:15px;box-shadow:0 5px 0 rgba(94,74,85,.05)}
+.progresswrap{margin-left:auto;width:285px;display:flex;align-items:center;gap:8px}
+.progress{height:12px;background:#eee5eb;border-radius:999px;overflow:hidden;flex:1;border:1px solid #eadfe5}
+.progress i{display:block;height:100%;width:25%;background:linear-gradient(90deg,#efa6c5,#8fc79a);border-radius:inherit}
+.progresslabel{font-size:12px;font-weight:900;color:#8a7782}
+.hud-score{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid var(--line);border-radius:18px;padding:9px 12px;font-weight:900;white-space:nowrap}
+/* HOME */
+.home{background:linear-gradient(160deg,#dff4ff 0%,#ffe9f5 47%,#f6f1ff 100%)}
+.home:before{content:"";position:absolute;inset:auto -10% -80px;height:300px;background:radial-gradient(circle at 50% 15%,#bfe6c6,transparent 60%),linear-gradient(#d6edda,#b8dbbe);border-radius:50% 50% 0 0/40% 40% 0 0}
+.home-hero{position:absolute;inset:110px 60px 96px;display:grid;grid-template-columns:1.02fr .98fr;gap:10px;align-items:center;z-index:2}
+.home-copy{padding:15px 0 0 15px}
+.logo-mark{display:inline-block;padding:8px 18px;border-radius:20px;background:#fff;border:2px solid #ead7e1;color:#e4558c;font-weight:1000;letter-spacing:2px;font-size:23px;box-shadow:0 6px 0 rgba(85,53,74,.06)}
+.logo-sub{margin:8px 0 0 3px;font-size:14px;font-weight:900;color:#7b6572}
+.home h1{font-size:68px;line-height:.95;margin:18px 0 13px;letter-spacing:-3px;color:#5b3d4d}
+.home h1 span{display:block;color:#e76498}
+.home .lead{max-width:560px;font-size:16px;line-height:1.65;color:#645761;margin:0 0 22px}
+.home-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{border:0;border-radius:18px;padding:13px 21px;font-weight:1000;cursor:pointer;box-shadow:0 6px 0 rgba(76,54,68,.08);transition:.15s}
+.btn:hover{transform:translateY(-2px)}.btn:active{transform:translateY(1px);box-shadow:0 2px 0 rgba(76,54,68,.08)}
+.btn-green{background:var(--green)}.btn-pink{background:var(--pink)}.btn-purple{background:var(--purple)}.btn-white{background:#fff;border:2px solid var(--line)}
+.home-note{margin-top:10px;color:#826f7b;font-size:11px;font-weight:800}
+.scene{position:relative;height:470px}
+.scene-card{position:absolute;inset:30px 8px 0 6px;background:rgba(255,255,255,.56);border:2px solid rgba(255,255,255,.82);border-radius:34px;backdrop-filter:blur(6px);box-shadow:inset 0 0 0 1px rgba(217,190,203,.2)}
+.sun{position:absolute;right:54px;top:36px;width:58px;height:58px;background:#ffe6a9;border:5px solid #e8cb7f;border-radius:50%;box-shadow:0 0 0 10px rgba(255,230,169,.22)}
+.cloud2{position:absolute;right:115px;top:90px;width:115px;height:27px;background:#fff;border-radius:99px}.cloud2:before,.cloud2:after{content:"";position:absolute;background:#fff;border-radius:50%}.cloud2:before{width:48px;height:48px;left:17px;bottom:4px}.cloud2:after{width:54px;height:54px;right:13px;bottom:3px}
+.flower{position:absolute;bottom:50px;width:18px;height:18px;border-radius:50%;background:#ffd5e4;box-shadow:0 -11px 0 #ffd5e4,0 11px 0 #ffd5e4,11px 0 0 #ffd5e4,-11px 0 0 #ffd5e4}.f1{left:50px}.f2{right:170px;bottom:64px;transform:scale(.75)}
+/* characters - SVG */
+.studentSvg{position:absolute;left:18px;bottom:4px;width:430px;height:430px;filter:drop-shadow(0 15px 8px rgba(62,48,54,.11))}
+.rabbitSvg{position:absolute;right:20px;bottom:22px;width:190px;height:190px;filter:drop-shadow(0 10px 6px rgba(62,48,54,.10))}
+.home-menu{position:absolute;left:70px;right:70px;bottom:28px;height:74px;background:rgba(255,255,255,.96);border:2px solid #eadfe5;border-radius:25px;display:flex;z-index:4;box-shadow:0 8px 20px rgba(70,50,63,.09);overflow:hidden}
+.home-menu button{flex:1;border:0;background:transparent;font-weight:1000;color:#534250;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px}
+.home-menu button+button{border-left:2px solid #eee4e9}
+.home-menu span{font-size:25px}
+/* levels */
+.level-screen{background:linear-gradient(150deg,#fff5f9,#fffdfa 48%,#eff8f1)}
+.inner{position:absolute;inset:96px 28px 28px;z-index:2}
+.banner{border-radius:22px;padding:14px 18px;background:linear-gradient(90deg,#f8c3d7,#fff0f6);border:2px solid #ecc9d7;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.banner h2{margin:0;font-size:22px}.banner p{margin:3px 0 0;color:var(--muted);font-size:11px}
+.content{margin-top:14px;display:grid;grid-template-columns:1.08fr .92fr;gap:14px}
+.cardpanel{background:#fff;border:2px solid var(--line);border-radius:25px;box-shadow:var(--shadow);overflow:hidden}
+.cardhead{padding:14px 17px;font-weight:1000;font-size:15px;display:flex;justify-content:space-between;align-items:center}.pinkhead{background:#ffe0eb}.greenhead{background:#dff2e2}.purplehead{background:#eadff8}.yellowhead{background:#fff3c9}
+.cardbody{padding:16px}
+.concepts{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.concept{padding:15px;border:2px solid var(--line);border-radius:18px;min-height:140px}.c-pink{background:var(--pink2)}.c-green{background:var(--green2)}.c-yellow{background:var(--yellow2)}.c-purple{background:var(--purple2)}
+.concept .ico{width:40px;height:40px;border-radius:13px;background:#fff;border:2px solid #eee4ea;display:grid;place-items:center;font-size:20px;margin-bottom:8px}
+.concept h3{margin:0 0 5px;font-size:14px}.concept p{margin:0;font-size:11px;color:var(--muted);line-height:1.5}.formula{margin-top:11px;border-radius:17px;background:#f2e8fd;border:2px solid #e0cff4;padding:13px;text-align:center;font-size:23px;font-weight:1000;color:#604e84}.formula small{display:block;font-size:10px;color:#857994;margin-top:5px}
+.examplebox{height:100%;padding:17px;background:linear-gradient(145deg,#fff,#fff8fb);border-radius:23px;border:2px solid var(--line)}
+.exampletag{display:inline-block;padding:5px 9px;border-radius:99px;background:#f7e6a4;font-size:10px;font-weight:1000}.examplebox h3{font-size:19px;line-height:1.35;margin:12px 0 8px}.examplebox p{font-size:12px;color:var(--muted);line-height:1.6}.calc{margin:14px 0 10px;padding:13px;border-radius:17px;background:#fff3d6;border:2px solid #ebdca4;font-weight:1000;text-align:center}.step{display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed #e8dfe5;font-size:11px;line-height:1.5}.step:last-child{border-bottom:0}.step b{display:grid;place-items:center;width:23px;height:23px;border-radius:50%;background:#f3c1d7;font-size:10px;flex:0 0 23px}
+.helper{margin-top:12px;background:#f0f8f1;border:2px solid #d1e8d6;border-radius:17px;padding:11px;font-size:11px;line-height:1.55}.helper strong{color:#4f8560}
+.bottom-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:13px}
+/* explore */
+.explore-grid{grid-template-columns:.75fr 1.25fr}.wheel-wrap{background:linear-gradient(145deg,#fff6fb,#f0faf2);display:grid;place-items:center;min-height:460px}.wheel-svg{width:245px;height:245px;filter:drop-shadow(0 14px 12px rgba(74,53,65,.10));position:relative;z-index:2}.arrow{position:absolute;top:-28px;left:50%;transform:translateX(-50%);font-size:31px}.resultline{margin-top:12px;padding:12px;border-radius:16px;background:#eef8f0;border:2px solid #cee4d2;font-size:12px;line-height:1.55}.choicegrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.choicebtn{border:2px solid var(--line);background:#fff;border-radius:16px;padding:13px;text-align:left;font-weight:1000;cursor:pointer}.choicebtn.correct{background:var(--green);border-color:#86bb92}.choicebtn.wrong{background:#ffe5ed;border-color:#e49ab5}
+/* quiz */
+.quiz-layout{display:grid;grid-template-columns:1fr 250px;gap:14px}.question-card{padding:20px}.qmeta{display:flex;justify-content:space-between;gap:8px;align-items:center}.tagpill{padding:7px 10px;border-radius:999px;background:#fff0f6;border:2px solid #efcbd9;font-size:10px;font-weight:1000}.qtitle{font-size:25px;line-height:1.35;margin:17px 0}.options{display:grid;grid-template-columns:1fr 1fr;gap:11px}.option{border:2px solid var(--line);background:#fff;border-radius:17px;padding:15px;text-align:left;font-size:14px;font-weight:900;cursor:pointer}.option.correct{background:var(--green);border-color:#81ba8e}.option.wrong{background:#ffe7ef;border-color:#e5a0b7}.feedbackBox{display:none;margin-top:12px;padding:13px;border-radius:16px;background:#f5effc;border:2px solid #e2d5f3;font-size:12px;line-height:1.6}.feedbackBox.show{display:block}.sidecard{padding:18px}.sidecard h3{margin:0 0 10px}.stats{display:grid;gap:8px}.stat{display:flex;justify-content:space-between;padding:11px;border-radius:14px;background:#faf8fb;border:2px solid var(--line);font-size:11px;font-weight:900}.mascotTip{margin-top:12px;padding:12px;background:#fff8df;border:2px solid #ecdfa9;border-radius:16px;font-size:11px;line-height:1.55}
+/* boss */
+.boss{background:linear-gradient(160deg,#efe8ff,#fffafd 42%,#f2f8f2)}.boss .banner{background:linear-gradient(90deg,#e2d5f8,#fff0f8)}.boss-character{position:absolute;right:20px;top:15px;width:230px;height:220px}.boss-card{position:relative}.boss-ribbon{position:absolute;right:22px;top:13px;padding:7px 11px;background:#ffc7dc;border-radius:999px;font-size:10px;font-weight:1000;z-index:3}.boss-title{font-size:34px;margin:0 0 8px}.boss-sub{color:var(--muted);font-size:12px;max-width:480px;line-height:1.55}.boss-question{margin-top:17px;font-size:22px;line-height:1.4;font-weight:1000}.boss-note{margin-top:14px;padding:11px 13px;border-radius:15px;background:#f4edfc;border:2px solid #ded0f0;font-size:11px}
+/* result */
+.result{background:linear-gradient(155deg,#fff1f6,#fffdf7 46%,#eef9f0)}.result-wrap{position:absolute;inset:112px 55px 36px;display:grid;place-items:center}.result-card{width:min(880px,100%);display:grid;grid-template-columns:1fr 270px;gap:15px}.result-main{padding:30px;text-align:center}.result-main h2{font-size:40px;margin:10px 0 8px;color:#dd5f91}.result-main p{color:var(--muted);line-height:1.6;font-size:13px}.finalscore{padding:28px;background:linear-gradient(150deg,#fff8de,#fff);border:2px solid #eddfb4;border-radius:26px;text-align:center}.finalscore .num{font-size:54px;color:#6f5a7d;font-weight:1000;margin:8px 0}.badge{display:inline-block;padding:9px 14px;border-radius:999px;background:#ddcff1;border:2px solid #c7b1e4;font-size:11px;font-weight:1000}
+/* fixed screen scaling */
+@media(max-width:900px){.app{min-height:680px}.screen{min-height:680px}.home-hero{inset:100px 30px 86px;grid-template-columns:1fr}.scene{display:none}.home h1{font-size:50px}.home-menu{left:25px;right:25px}.content,.quiz-layout,.result-card,.game-card{grid-template-columns:1fr}.progresswrap{width:180px}.inner{inset:95px 18px 18px}.concepts{grid-template-columns:1fr}.explore-grid{grid-template-columns:1fr}.wheel-wrap{min-height:250px}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HOME -->
+  <section class="screen home active" id="home">
+    <div class="doodle d1">✦</div><div class="doodle d2">✧</div><div class="doodle d3">🌷</div><div class="doodle d4">⭐</div><div class="doodle d5">☁️</div>
+    <div class="gamebar">
+      <button class="iconbtn" onclick="show('materi')">⚙</button>
+      <div class="levelpill">PULAN • Petualangan Peluang</div>
+      <div class="progresswrap"><span class="progresslabel">Jalur</span><div class="progress"><i id="homeProgress"></i></div><span class="progresslabel" id="homePct">1/4</span></div>
+      <div class="hud-score">⭐ <span id="scoreHud">0</span></div>
+    </div>
+    <div class="home-hero">
+      <div class="home-copy">
+        <div class="logo-mark">PULAN</div>
+        <div class="logo-sub">Petualangan Peluang</div>
+        <h1>Belajar matematika<br><span>dengan cara seru!</span></h1>
+        <p class="lead">Jelajahi konsep peluang lewat cerita, visual, tantangan, dan soal interaktif. Kamu akan ditemani Rara, siswi SMP, dan Bani si kelinci kecil.</p>
+        <div class="home-actions">
+          <button class="btn btn-green" onclick="show('materi')">MULAI PETUALANGAN ▶</button>
+          <button class="btn btn-white" onclick="show('materi')">📖 Materi</button>
+        </div>
+        <div class="home-note">Progress tersimpan selama halaman game terbuka • Cocok untuk pembelajaran SMP</div>
+      </div>
+      <div class="scene">
+        <div class="scene-card"></div><div class="sun"></div><div class="cloud2"></div><div class="flower f1"></div><div class="flower f2"></div>
+        <svg class="studentSvg" viewBox="0 0 430 430" aria-label="Rara, siswi SMP">
+          <ellipse cx="213" cy="405" rx="118" ry="17" fill="#7fae88" opacity=".28"/>
+          <!-- backpack -->
+          <rect x="288" y="190" width="58" height="110" rx="18" fill="#8fb4db" stroke="#6688b3" stroke-width="6"/>
+          <path d="M292 210 Q270 185 262 161" fill="none" stroke="#6f92bb" stroke-width="9" stroke-linecap="round"/>
+          <path d="M328 207 Q348 187 355 163" fill="none" stroke="#6f92bb" stroke-width="9" stroke-linecap="round"/>
+
+          <!-- legs -->
+          <path d="M150 324 L193 324 L191 398 L137 398 Z" fill="#697da7" stroke="#536486" stroke-width="6"/>
+          <path d="M221 324 L264 324 L281 398 L229 398 Z" fill="#697da7" stroke="#536486" stroke-width="6"/>
+          <path d="M129 397 Q160 386 194 397 L194 410 L127 410 Q120 404 129 397Z" fill="#fffdf8" stroke="#d2c8cc" stroke-width="5"/>
+          <path d="M226 397 Q256 386 283 399 L290 410 L223 410 Q217 404 226 397Z" fill="#fffdf8" stroke="#d2c8cc" stroke-width="5"/>
+
+          <!-- sweatshirt -->
+          <path d="M112 337 Q111 261 162 218 Q205 197 258 218 Q308 259 309 337 Q271 359 213 360 Q151 359 112 337Z" fill="#f4a9ca" stroke="#c97998" stroke-width="7"/>
+          <path d="M161 222 Q214 245 260 222" fill="none" stroke="#fff9fb" stroke-width="8" opacity=".9"/>
+          <path d="M181 229 Q213 250 246 229" fill="none" stroke="#c77f9c" stroke-width="5"/>
+
+          <!-- arms -->
+          <path d="M118 263 Q90 279 78 247" fill="none" stroke="#ffd9bd" stroke-width="23" stroke-linecap="round"/>
+          <path d="M303 260 Q326 246 337 214" fill="none" stroke="#ffd9bd" stroke-width="23" stroke-linecap="round"/>
+          <path d="M73 248 Q61 236 68 225 Q76 216 86 224 Q91 234 82 245" fill="#ffd9bd" stroke="#c77e66" stroke-width="5"/>
+          <path d="M335 217 Q346 203 353 190 Q360 199 355 211 Q349 221 339 225" fill="#ffd9bd" stroke="#c77e66" stroke-width="5"/>
+
+          <!-- neck -->
+          <rect x="191" y="196" width="45" height="32" rx="13" fill="#ffd9bd" stroke="#c77e66" stroke-width="5"/>
+
+          <!-- hair back -->
+          <path d="M157 150 Q146 89 194 62 Q236 39 280 67 Q323 94 304 170 Q297 202 262 220 L163 210 Q148 187 157 150Z" fill="#4b3d46" stroke="#3d323a" stroke-width="7"/>
+
+          <!-- face -->
+          <path d="M169 129 Q177 83 226 79 Q278 80 294 126 L288 180 Q278 214 231 220 Q187 217 171 183Z" fill="#ffd9bd" stroke="#c77e66" stroke-width="6"/>
+
+          <!-- fringe -->
+          <path d="M164 133 Q165 83 217 72 Q273 68 298 122 Q281 105 258 107 Q225 110 198 133 Q184 145 164 133Z" fill="#4b3d46"/>
+          <path d="M179 105 Q190 90 206 87 Q194 104 194 125 Q184 132 174 129Z" fill="#4b3d46"/>
+
+          <!-- friendly eyes -->
+          <ellipse cx="200" cy="158" rx="11" ry="14" fill="#40363d"/>
+          <ellipse cx="254" cy="158" rx="11" ry="14" fill="#40363d"/>
+          <circle cx="203" cy="154" r="3.5" fill="#fff"/>
+          <circle cx="257" cy="154" r="3.5" fill="#fff"/>
+          <path d="M188 139 Q199 132 210 138" fill="none" stroke="#6e545d" stroke-width="4" stroke-linecap="round"/>
+          <path d="M244 138 Q255 132 266 139" fill="none" stroke="#6e545d" stroke-width="4" stroke-linecap="round"/>
+
+          <!-- smile + cheeks -->
+          <path d="M218 179 Q227 188 237 178" fill="none" stroke="#a65f6d" stroke-width="5" stroke-linecap="round"/>
+          <ellipse cx="183" cy="177" rx="10" ry="6" fill="#f3b6c8" opacity=".75"/>
+          <ellipse cx="271" cy="177" rx="10" ry="6" fill="#f3b6c8" opacity=".75"/>
+
+          <!-- hand-held book -->
+          <rect x="316" y="236" width="68" height="48" rx="7" fill="#fff7d8" stroke="#c7ab60" stroke-width="5" transform="rotate(-9 350 260)"/>
+          <path d="M327 248 L366 248 M327 259 L357 259" stroke="#c4a65c" stroke-width="4"/>
+          <text x="346" y="276" text-anchor="middle" font-size="10" font-family="Arial" font-weight="700" fill="#c4a65c">PELUANG</text>
+        </svg>
+        <svg class="rabbitSvg" viewBox="0 0 200 200" aria-label="Bani si kelinci">
+          <ellipse cx="100" cy="184" rx="57" ry="9" fill="#7fae88" opacity=".35"/>
+          <path d="M74 52 Q56 16 72 9 Q90 6 99 51" fill="#fffdf8" stroke="#b9aab0" stroke-width="5"/>
+          <path d="M124 52 Q133 9 150 13 Q165 20 143 62" fill="#fffdf8" stroke="#b9aab0" stroke-width="5"/>
+          <ellipse cx="100" cy="115" rx="64" ry="57" fill="#fffdf8" stroke="#b9aab0" stroke-width="6"/>
+          <ellipse cx="79" cy="110" rx="7" ry="11" fill="#4a4047"/><ellipse cx="121" cy="110" rx="7" ry="11" fill="#4a4047"/>
+          <path d="M95 122 Q100 128 105 122" fill="none" stroke="#b25e72" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="67" cy="126" r="10" fill="#f5c8d6" opacity=".8"/><circle cx="133" cy="126" r="10" fill="#f5c8d6" opacity=".8"/>
+          <path d="M58 156 Q96 137 144 156 L139 177 Q101 190 63 176Z" fill="#bfe3c5" stroke="#8cb995" stroke-width="5"/>
+          <path d="M84 79 Q100 70 116 79" fill="none" stroke="#d8bf6d" stroke-width="7"/>
+        </svg>
+      </div>
+    </div>
+    <div class="home-menu">
+      <button onclick="show('materi')"><span>📘</span>Materi</button>
+      <button onclick="show('explore')"><span>🎯</span>Eksplorasi</button>
+      <button onclick="show('practice')"><span>📝</span>Latihan</button>
+      <button onclick="show('boss')"><span>👑</span>Final Boss</button>
+    </div>
+  </section>
+
+  <!-- LEVEL 1 -->
+  <section class="screen level-screen" id="materi">
+    <div class="doodle d1">✦</div><div class="doodle d2">🌸</div><div class="doodle d3">⭐</div><div class="doodle d4">✧</div>
+    <div class="gamebar">
+      <button class="iconbtn" onclick="show('home')">←</button><div class="levelpill">Level 1 — Jelajahi Konsep</div>
+      <div class="progresswrap"><div class="progress"><i style="width:25%"></i></div><span class="progresslabel">1/4</span></div><div class="hud-score">⭐ <span class="scoreValue">0</span></div>
+    </div>
+    <div class="inner">
+      <div class="banner"><div><h2>Yuk, pahami konsep dasar peluang!</h2><p>Gunakan contoh konkret supaya rumusnya tidak terasa abstrak.</p></div><div style="font-size:38px">🎲</div></div>
+      <div class="content">
+        <div class="cardpanel">
+          <div class="cardhead pinkhead">Konsep Penting <span>4 konsep</span></div>
+          <div class="cardbody">
+            <div class="concepts">
+              <div class="concept c-pink"><div class="ico">🎲</div><h3>Ruang Sampel</h3><p>Semua hasil yang mungkin terjadi.</p><div class="worked">Dadu → {1,2,3,4,5,6}</div></div>
+              <div class="concept c-green"><div class="ico">🔹</div><h3>Titik Sampel</h3><p>Satu hasil tertentu dalam ruang sampel.</p><div class="worked">Contoh: muncul angka 4.</div></div>
+              <div class="concept c-yellow"><div class="ico">⭐</div><h3>Kejadian</h3><p>Kumpulan hasil yang memenuhi syarat.</p><div class="worked">Genap → {2,4,6}</div></div>
+              <div class="concept c-purple"><div class="ico">📊</div><h3>Peluang</h3><p>Ukuran seberapa mungkin suatu kejadian terjadi.</p><div class="worked">0 ≤ P(A) ≤ 1</div></div>
+            </div>
+            <div class="formula">P(A) = <span style="text-decoration:overline">n(A)</span> / n(S)<small>kejadian yang diinginkan ÷ seluruh kemungkinan</small></div>
+          </div>
+        </div>
+        <div class="examplebox">
+          <span class="exampletag">CONTOH KONKRET • DADU</span>
+          <h3>Sebuah dadu dilempar satu kali. Berapa peluang muncul angka lebih dari 4?</h3>
+          <div class="step"><b>1</b><div>Ruang sampel: 1, 2, 3, 4, 5, 6 → ada <strong>6</strong> kemungkinan.</div></div>
+          <div class="step"><b>2</b><div>Hasil yang lebih dari 4 adalah <strong>5 dan 6</strong> → ada <strong>2</strong> hasil.</div></div>
+          <div class="calc">P(A) = 2/6 = <strong>1/3</strong></div>
+          <span class="exampletag" style="background:#cce7d0">CONTOH KEHIDUPAN • CUACA</span>
+          <p>Jika aplikasi cuaca menyebut peluang hujan <strong>70%</strong>, maka peluang tidak hujan adalah 100% − 70% = <strong>30%</strong>.</p>
+          <div class="helper">🐰 <strong>Bani:</strong> selalu cari dulu “semua kemungkinan” dan “hasil yang dicari”. Setelah itu baru masukkan ke rumus.</div>
+          <div class="bottom-actions"><button class="btn btn-green" onclick="show('explore')">Aku Sudah Paham →</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEVEL 2 -->
+  <section class="screen level-screen" id="explore">
+    <div class="doodle d1">✦</div><div class="doodle d2">🍀</div><div class="doodle d3">⭐</div><div class="doodle d4">☁️</div>
+    <div class="gamebar">
+      <button class="iconbtn" onclick="show('materi')">←</button><div class="levelpill">Level 2 — Eksplorasi</div>
+      <div class="progresswrap"><div class="progress"><i style="width:50%"></i></div><span class="progresslabel">2/4</span></div><div class="hud-score">⭐ <span class="scoreValue">0</span></div>
+    </div>
+    <div class="inner">
+      <div class="banner" style="background:linear-gradient(90deg,#e2f2e5,#f9fff3)"><div><h2>Sekarang, coba kamu selesaikan tantangan ini!</h2><p>Gunakan langkah yang barusan dipelajari.</p></div><div style="font-size:40px">🎯</div></div>
+      <div class="content explore-grid">
+        <div class="cardpanel wheel-wrap">
+          <div class="arrow">▼</div>
+          <svg class="wheel-svg" viewBox="0 0 240 240" aria-label="Roda peluang dengan 8 bagian: 3 pink, 2 kuning, 2 hijau, 1 ungu">
+            <circle cx="120" cy="120" r="103" fill="#fff" stroke="#e4d9e2" stroke-width="7"/>
+            <!-- 8 sektor sama besar -->
+            <path d="M120 120 L120 25 A95 95 0 0 1 187.18 52.82 Z" fill="#f5bfd2" stroke="#fff" stroke-width="3"/>
+            <path d="M120 120 L187.18 52.82 A95 95 0 0 1 215 120 Z" fill="#f5bfd2" stroke="#fff" stroke-width="3"/>
+            <path d="M120 120 L215 120 A95 95 0 0 1 187.18 187.18 Z" fill="#f5bfd2" stroke="#fff" stroke-width="3"/>
+            <path d="M120 120 L187.18 187.18 A95 95 0 0 1 120 215 Z" fill="#f7df9b" stroke="#fff" stroke-width="3"/>
+            <path d="M120 120 L120 215 A95 95 0 0 1 52.82 187.18 Z" fill="#f7df9b" stroke="#fff" stroke-width="3"/>
+            <path d="M120 120 L52.82 187.18 A95 95 0 0 1 25 120 Z" fill="#bde1c5" stroke="#fff" stroke-width="3"/>
+            <path d="M120 120 L25 120 A95 95 0 0 1 52.82 52.82 Z" fill="#bde1c5" stroke="#fff" stroke-width="3"/>
+            <path d="M120 120 L52.82 52.82 A95 95 0 0 1 120 25 Z" fill="#d9c3ef" stroke="#fff" stroke-width="3"/>
+            <circle cx="120" cy="120" r="17" fill="#fff" stroke="#8d7081" stroke-width="5"/>
+            <circle cx="120" cy="120" r="6" fill="#e9679b"/>
+          </svg>
+          <div style="margin-top:13px;font-size:11px;color:#7f727b;font-weight:900">3 pink • 2 kuning • 2 hijau • 1 ungu</div>
+        </div>
+        <div class="cardpanel">
+          <div class="cardhead greenhead">Mini Game — Pilih Jawabanmu <span>+50 poin</span></div>
+          <div class="cardbody">
+            <h3 style="font-size:21px;margin:0 0 8px">Roda memiliki 8 bagian.</h3>
+            <p style="font-size:13px;color:var(--muted);line-height:1.6">3 bagian berwarna pink, 2 kuning, 2 hijau, dan 1 ungu. Peluang berhenti pada warna <strong>kuning</strong> adalah ...</p>
+            <div class="choicegrid" id="exploreChoices">
+              <button class="choicebtn" data-a="1/8">A. 1/8</button><button class="choicebtn" data-a="1/4">B. 1/4</button><button class="choicebtn" data-a="3/8">C. 3/8</button><button class="choicebtn" data-a="1/2">D. 1/2</button>
+            </div>
+            <div class="feedbackBox" id="exploreFeedback"></div>
+            <div class="bottom-actions"><button class="btn btn-green" id="exploreNext" disabled>🔒 Selesaikan tantangan</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEVEL 3 -->
+  <section class="screen level-screen" id="practice">
+    <div class="doodle d1">✦</div><div class="doodle d2">🌟</div><div class="doodle d3">🍀</div><div class="doodle d4">✧</div>
+    <div class="gamebar">
+      <button class="iconbtn" onclick="show('explore')">←</button><div class="levelpill">Level 3 — Latihan Soal</div>
+      <div class="progresswrap"><div class="progress"><i style="width:75%"></i></div><span class="progresslabel">3/4</span></div><div class="hud-score">⭐ <span class="scoreValue">0</span></div>
+    </div>
+    <div class="inner">
+      <div class="banner"><div><h2>Latihan yuk! Tunjukkan kamu sudah paham.</h2><p>Jawab, lihat pembahasannya, lalu lanjut ke soal berikutnya.</p></div><div style="font-size:39px">📝</div></div>
+      <div class="quiz-layout" style="margin-top:14px">
+        <div class="cardpanel question-card">
+          <div class="qmeta"><span class="tagpill" id="qCount">Soal 1/5</span><span class="tagpill" id="heart">❤️❤️❤️</span></div>
+          <div class="qtitle" id="qText"></div><div class="options" id="qOptions"></div><div class="feedbackBox" id="qFeedback"></div>
+          <div class="bottom-actions"><button class="btn btn-green" id="qNext" style="display:none">Lanjut →</button></div>
+        </div>
+        <aside class="cardpanel sidecard">
+          <h3>🎮 Status Permainan</h3>
+          <div class="stats"><div class="stat"><span>Skor</span><span id="sideScore">0</span></div><div class="stat"><span>Nyawa</span><span id="sideLife">❤️❤️❤️</span></div><div class="stat"><span>Level</span><span>3 / 4</span></div></div>
+          <div class="mascotTip">🐰 <strong>Bani bilang:</strong><br>bacalah seluruh soal sebelum menentukan ruang sampel dan kejadian.</div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEVEL 4 -->
+  <section class="screen boss" id="boss">
+    <div class="doodle d1">✦</div><div class="doodle d2">👑</div><div class="doodle d3">⭐</div><div class="doodle d4">✧</div>
+    <div class="gamebar">
+      <button class="iconbtn" onclick="show('practice')">←</button><div class="levelpill">Level 4 — Final Boss</div>
+      <div class="progresswrap"><div class="progress"><i style="width:100%"></i></div><span class="progresslabel">4/4</span></div><div class="hud-score">⭐ <span class="scoreValue">0</span></div>
+    </div>
+    <div class="inner">
+      <div class="banner"><div><h2 class="boss-title">FINAL BOSS 👑</h2><div class="boss-sub">Tantangan terakhir! Buktikan kamu sudah menguasai konsep peluang.</div></div><div style="font-size:42px">⚡</div></div>
+      <div class="quiz-layout" style="margin-top:14px">
+        <div class="cardpanel question-card boss-card">
+          <div class="boss-ribbon" id="bCount">Boss 1/3</div>
+          <div style="font-size:12px;color:#7a6a83;font-weight:900">🔥 Tantangan campuran</div>
+          <div class="boss-question" id="bText"></div>
+          <div class="options" id="bOptions"></div>
+          <div class="feedbackBox" id="bFeedback"></div>
+          <div class="bottom-actions"><button class="btn btn-green" id="bNext" style="display:none">Tantangan berikutnya →</button></div>
+        </div>
+        <aside class="cardpanel sidecard">
+          <div style="text-align:center;font-size:58px">🐰</div>
+          <h3 style="text-align:center;margin-top:2px">Bani's Final Tip</h3>
+          <div class="mascotTip">Pecah soal menjadi dua bagian: <strong>berapa semua kemungkinan?</strong> lalu <strong>berapa yang memenuhi syarat?</strong></div>
+          <div class="helper" style="margin-top:10px">🎓 Target: memahami konsep, bukan sekadar hafal rumus.</div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="screen result" id="result">
+    <div class="doodle d1">✦</div><div class="doodle d2">⭐</div><div class="doodle d3">🌷</div><div class="doodle d4">✧</div>
+    <div class="gamebar"><div class="levelpill">PULAN • Hasil Petualangan</div><div class="progresswrap"><div class="progress"><i style="width:100%"></i></div><span class="progresslabel">SELESAI</span></div></div>
+    <div class="result-wrap">
+      <div class="result-card">
+        <div class="cardpanel result-main"><div style="font-size:70px">🎉</div><h2 id="resultTitle">Hebat!</h2><p id="resultText">Kamu berhasil menyelesaikan petualangan peluang.</p><div class="badge" id="resultBadge">🌱 Penjelajah Peluang</div><div class="home-actions" style="justify-content:center;margin-top:20px"><button class="btn btn-pink" onclick="resetGame()">↻ Main Lagi</button><button class="btn btn-white" onclick="show('home')">⌂ Kembali ke Menu</button></div></div>
+        <div class="finalscore"><div style="font-size:40px">🏆</div><div style="font-size:11px;color:#887884;font-weight:900">SKOR AKHIR</div><div class="num" id="scoreFinal">0</div><div class="badge">✨ PULAN</div><div style="margin-top:15px;font-size:11px;color:#82757e;line-height:1.5">Kamu sudah melewati semua level dan Final Boss.</div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const screens=['home','materi','explore','practice','boss','result'];
+let score=0,lives=3,qi=0,bi=0,locked=false;
+const $=id=>document.getElementById(id);
+const qs=[
+ {q:'Sebuah dadu dilempar sekali. Peluang muncul angka 3 adalah ...',o:['1/6','1/3','1/2','2/3'],a:0,e:'Ada 1 hasil yang diinginkan dari 6 kemungkinan → 1/6.'},
+ {q:'Sebuah kantong berisi 3 bola merah dan 2 bola biru. Peluang mengambil bola biru adalah ...',o:['1/5','2/5','3/5','4/5'],a:1,e:'Ada 2 bola biru dari total 5 bola → 2/5.'},
+ {q:'Dadu dilempar sekali. Peluang muncul bilangan genap adalah ...',o:['1/6','1/3','1/2','2/3'],a:2,e:'Bilangan genap: 2, 4, 6. Jadi 3/6 = 1/2.'},
+ {q:'Angka 1–10 dipilih secara acak. Peluang mendapat bilangan prima adalah ...',o:['2/10','3/10','4/10','5/10'],a:2,e:'Bilangan prima: 2, 3, 5, 7. Ada 4 dari 10 → 4/10.'},
+ {q:'Jika peluang hujan adalah 0,25, maka peluang tidak hujan adalah ...',o:['0,25','0,50','0,75','1,25'],a:2,e:'Peluang komplemen = 1 − 0,25 = 0,75.'}
+];
+const bs=[
+ {q:'Roda memiliki 8 bagian sama besar. 3 bagian berwarna pink. Peluang berhenti pada pink adalah ...',o:['1/8','2/8','3/8','5/8'],a:2,e:'3 bagian pink dari 8 bagian → 3/8.'},
+ {q:'Dua koin dilempar bersamaan. Banyak titik sampel yang mungkin adalah ...',o:['2','3','4','6'],a:2,e:'AA, AG, GA, GG → ada 4 titik sampel.'},
+ {q:'Sebuah dadu dilempar. Peluang muncul angka yang bukan 1 adalah ...',o:['1/6','1/3','1/2','5/6'],a:3,e:'Ada 5 hasil selain angka 1 dari 6 hasil → 5/6.'}
+];
+function show(id){screens.forEach(s=>$(s).classList.remove('active'));$(id).classList.add('active');history.replaceState({},'', '#'+id);window.scrollTo({top:0,behavior:'smooth'});updateHUD();if(id==='practice')renderQ();if(id==='boss')renderB();}
+function updateHUD(){document.querySelectorAll('.scoreValue').forEach(x=>x.textContent=score);$('scoreHud').textContent=score;$('sideScore').textContent=score;}
+function renderQ(){locked=false;const x=qs[qi];$('qCount').textContent=`Soal ${qi+1}/${qs.length}`;$('heart').textContent='❤️'.repeat(lives)+'🖤'.repeat(3-lives);$('sideLife').textContent='❤️'.repeat(lives)+'🖤'.repeat(3-lives);$('qText').textContent=x.q;$('qFeedback').className='feedbackBox';$('qNext').style.display='none';const box=$('qOptions');box.innerHTML='';x.o.forEach((t,i)=>{const b=document.createElement('button');b.className='option';b.textContent=String.fromCharCode(65+i)+'. '+t;b.onclick=()=>answerQ(i,b);box.appendChild(b)});}
+function answerQ(i,b){if(locked)return;locked=true;const x=qs[qi],all=[...$('qOptions').children];all.forEach(v=>v.disabled=true);if(i===x.a){score+=100;b.classList.add('correct');$('qFeedback').innerHTML='🌟 <b>Benar!</b> '+x.e}else{lives=Math.max(0,lives-1);b.classList.add('wrong');all[x.a].classList.add('correct');$('qFeedback').innerHTML='💡 <b>Belum tepat.</b> '+x.e}updateHUD();$('qFeedback').classList.add('show');$('qNext').style.display='inline-block';$('qNext').textContent=qi===qs.length-1?'Masuk Final Boss 👑':'Lanjut →';}
+$('qNext').onclick=()=>{if(qi<qs.length-1){qi++;renderQ()}else{bi=0;show('boss');renderB()}};
+function renderB(){locked=false;const x=bs[bi];$('bCount').textContent=`Boss ${bi+1}/${bs.length}`;$('bText').textContent=x.q;$('bFeedback').className='feedbackBox';$('bNext').style.display='none';const box=$('bOptions');box.innerHTML='';x.o.forEach((t,i)=>{const b=document.createElement('button');b.className='option';b.textContent=String.fromCharCode(65+i)+'. '+t;b.onclick=()=>answerB(i,b);box.appendChild(b)});}
+function answerB(i,b){if(locked)return;locked=true;const x=bs[bi],all=[...$('bOptions').children];all.forEach(v=>v.disabled=true);if(i===x.a){score+=150;b.classList.add('correct');$('bFeedback').innerHTML='👑 <b>Benar! Boss dikalahkan.</b> '+x.e}else{b.classList.add('wrong');all[x.a].classList.add('correct');$('bFeedback').innerHTML='💡 '+x.e}updateHUD();$('bFeedback').classList.add('show');$('bNext').style.display='inline-block';$('bNext').textContent=bi===bs.length-1?'Lihat Hasil 🏆':'Tantangan berikutnya →';}
+$('bNext').onclick=()=>{if(bi<bs.length-1){bi++;renderB()}else finish()};
+$('exploreChoices').onclick=e=>{const b=e.target.closest('.choicebtn');if(!b)return;document.querySelectorAll('#exploreChoices .choicebtn').forEach(x=>x.classList.remove('correct','wrong'));const f=$('exploreFeedback');f.classList.add('show');if(b.dataset.a==='1/4'){b.classList.add('correct');score+=50;updateHUD();f.innerHTML='✅ <b>Benar!</b> Ada 2 bagian kuning dari 8 bagian → 2/8 = <b>1/4</b>.';$('exploreNext').disabled=false;$('exploreNext').textContent='Mulai Latihan 📝'}else{b.classList.add('wrong');f.innerHTML='💡 Belum tepat. Ingat: bagian kuning ada 2 dari total 8 → 2/8 = <b>1/4</b>.'}};
+$('exploreNext').onclick=()=>{if($('exploreNext').disabled)return;qi=0;lives=3;show('practice');renderQ()};
+function finish(){show('result');$('scoreFinal').textContent=score;$('resultTitle').textContent=score>=800?'Master Peluang! 👑':score>=550?'Hebat! 🌟':'Terus Berlatih! 🌱';$('resultText').innerHTML=`Kamu sudah melewati materi, mini game, latihan, dan Final Boss. Total skor kamu adalah <b>${score}</b> poin.`;$('resultBadge').textContent=score>=800?'✨ Master Peluang':score>=550?'🌈 Pejuang Peluang':'🌱 Penjelajah Peluang';}
+function resetGame(){score=0;lives=3;qi=0;bi=0;locked=false;$('exploreNext').disabled=true;$('exploreNext').textContent='🔒 Selesaikan tantangan';document.querySelectorAll('#exploreChoices .choicebtn').forEach(x=>x.classList.remove('correct','wrong'));$('exploreFeedback').className='feedbackBox';updateHUD();show('home');}
+(function(){const hash=location.hash.replace('#','');if(screens.includes(hash)&&hash!=='home')show(hash);else show('home');updateHUD()})();
+</script>
+</body>
+</html>
